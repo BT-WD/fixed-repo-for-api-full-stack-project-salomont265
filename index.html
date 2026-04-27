@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,6 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-logo">The Brief</div>
     <div class="nav-center">
@@ -23,155 +22,22 @@
     </div>
   </nav>
 
-  <!-- CATEGORY FILTERS -->
   <div class="filter-bar">
-    <button class="filter-chip active" data-category="general">Top Stories</button>
-    <button class="filter-chip" data-category="technology">Technology</button>
-    <button class="filter-chip" data-category="science">Science</button>
-    <button class="filter-chip" data-category="business">Business</button>
-    <button class="filter-chip" data-category="sports">Sports</button>
-    <button class="filter-chip" data-category="health">Health</button>
-    <button class="filter-chip" data-category="entertainment">Entertainment</button>
+    <button class="filter-chip active" data-guardian="news" data-gnews="breaking-news">Top Stories</button>
+    <button class="filter-chip" data-guardian="technology" data-gnews="technology">Technology</button>
+    <button class="filter-chip" data-guardian="science" data-gnews="science">Science</button>
+    <button class="filter-chip" data-guardian="business" data-gnews="business">Business</button>
+    <button class="filter-chip" data-guardian="sport" data-gnews="sports">Sports</button>
+    <button class="filter-chip" data-guardian="health" data-gnews="health">Health</button>
+    <button class="filter-chip" data-guardian="culture" data-gnews="entertainment">Entertainment</button>
   </div>
 
-  <!-- SOURCE TABS -->
-  <div class="source-bar">
-    <span class="source-label">Sources:</span>
-    <button class="source-tab active" data-source="newsapi">NewsAPI</button>
-    <button class="source-tab" data-source="guardian">The Guardian</button>
-    <button class="source-tab" data-source="nyt">New York Times</button>
-    <button class="source-tab" data-source="all">All Sources</button>
-  </div>
-
-  <!-- MAIN LAYOUT -->
-  <main class="main-layout">
-
-    <!-- LEFT: NEWS FEED -->
-    <section class="feed-section">
-
-      <!-- HERO CARD PLACEHOLDER -->
-      <div class="hero-card placeholder-card" id="hero-article">
-        <div class="hero-image-placeholder"></div>
-        <div class="hero-content">
-          <span class="article-source">Source Name</span>
-          <h2 class="hero-headline">Headline will appear here once API data loads</h2>
-          <p class="hero-desc">Article description placeholder — fetched from API via async JS in the next commit.</p>
-          <div class="hero-meta">
-            <span class="article-date">April 23, 2026</span>
-            <button class="btn-save" data-id="">Save</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ARTICLE GRID -->
-      <div class="section-label">Latest Stories</div>
-      <div class="article-grid" id="article-grid">
-
-        <!-- PLACEHOLDER CARDS (will be replaced by JS) -->
-        <div class="article-card placeholder-card">
-          <div class="card-image-placeholder"></div>
-          <div class="card-body">
-            <span class="article-source">Source</span>
-            <h3 class="card-headline">Article headline placeholder</h3>
-            <p class="card-desc">Short description of the article will go here.</p>
-            <div class="card-meta">
-              <span class="article-date">Date</span>
-              <button class="btn-save" data-id="">Save</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="article-card placeholder-card">
-          <div class="card-image-placeholder"></div>
-          <div class="card-body">
-            <span class="article-source">Source</span>
-            <h3 class="card-headline">Article headline placeholder</h3>
-            <p class="card-desc">Short description of the article will go here.</p>
-            <div class="card-meta">
-              <span class="article-date">Date</span>
-              <button class="btn-save" data-id="">Save</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="article-card placeholder-card">
-          <div class="card-image-placeholder"></div>
-          <div class="card-body">
-            <span class="article-source">Source</span>
-            <h3 class="card-headline">Article headline placeholder</h3>
-            <p class="card-desc">Short description of the article will go here.</p>
-            <div class="card-meta">
-              <span class="article-date">Date</span>
-              <button class="btn-save" data-id="">Save</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="article-card placeholder-card">
-          <div class="card-image-placeholder"></div>
-          <div class="card-body">
-            <span class="article-source">Source</span>
-            <h3 class="card-headline">Article headline placeholder</h3>
-            <p class="card-desc">Short description of the article will go here.</p>
-            <div class="card-meta">
-              <span class="article-date">Date</span>
-              <button class="btn-save" data-id="">Save</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- LOAD MORE -->
-      <div class="load-more-wrapper">
-        <button id="load-more-btn" class="btn-load-more">Load More Stories</button>
-      </div>
-
-    </section>
-
-    <!-- RIGHT: SIDEBAR -->
-    <aside class="sidebar">
-
-      <!-- TRENDING -->
-      <div class="sidebar-section">
-        <div class="section-label">Trending</div>
-        <div id="trending-list" class="trending-list">
-          <div class="trending-item placeholder-card">
-            <span class="trending-num">1</span>
-            <span class="trending-text">Trending headline placeholder</span>
-          </div>
-          <div class="trending-item placeholder-card">
-            <span class="trending-num">2</span>
-            <span class="trending-text">Trending headline placeholder</span>
-          </div>
-          <div class="trending-item placeholder-card">
-            <span class="trending-num">3</span>
-            <span class="trending-text">Trending headline placeholder</span>
-          </div>
-          <div class="trending-item placeholder-card">
-            <span class="trending-num">4</span>
-            <span class="trending-text">Trending headline placeholder</span>
-          </div>
-          <div class="trending-item placeholder-card">
-            <span class="trending-num">5</span>
-            <span class="trending-text">Trending headline placeholder</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- SAVED ARTICLES PREVIEW -->
-      <div class="sidebar-section">
-        <div class="section-label">Saved Articles</div>
-        <div id="saved-preview" class="saved-preview">
-          <p class="empty-state">No saved articles yet. Hit "Save" on any story.</p>
-        </div>
-      </div>
-
-    </aside>
-
+  <main>
+    <div class="hero-card" id="hero-article"></div>
+    <div class="section-label">Latest Stories</div>
+    <div class="article-grid" id="article-grid"></div>
   </main>
 
-  <!-- SAVED ARTICLES MODAL -->
   <div id="saved-modal" class="modal hidden">
     <div class="modal-overlay" id="modal-overlay"></div>
     <div class="modal-box">
@@ -185,8 +51,6 @@
     </div>
   </div>
 
-  <!-- JS will go here in next commit -->
   <script src="app.js"></script>
-
 </body>
 </html>
