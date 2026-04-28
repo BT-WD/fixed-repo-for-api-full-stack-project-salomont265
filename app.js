@@ -1,124 +1,224 @@
-const GUARDIAN_KEY = "b3a4e155-dc11-4852-966c-19c9b9f4b839";
-const GNEWS_KEY = "a32f1f4bdab1acb4d51e5ed8cbe266e5";
+const guardianKey = "b3a4e155-dc11-4852-966c-19c9b9f4b839";
+const gnewsKey = "a32f1f4bdab1acb4d51e5ed8cbe266e5";
 
-let currentGuardian = "news";
-let currentGnews = "breaking-news";
+// keeping track of what category we're on
+let guardianSection = "news";
+let gnewsTopic = "breaking-news";
 
-const getGuardianArticles = async (section) => {
-  const url = `https://content.guardianapis.com/search?api-key=${GUARDIAN_KEY}&section=${section}&page=1&show-fields=thumbnail,trailText`;
-  try {
-    const response = await fetch(url);
-    if (response.ok) {
-      const jsonResponse = await response.json();
-      const articles = jsonResponse.response.results;
-      console.log("Guardian:", articles);
-      return articles;
-    }
-  } catch (error) {
-    console.log(error);
+async function fetchGuardian(section) {
+  let url = "https://content.guardianapis.com/search?api-key=" + guardianKey + "&section=" + section + "&page=1&show-fields=thumbnail,trailText";
+  
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.log("guardian fetch failed", res.status);
+    return [];
   }
-};
-
-const getGNewsArticles = async (topic) => {
-  const url = `https://gnews.io/api/v4/top-headlines?topic=${topic}&lang=en&apikey=${GNEWS_KEY}`;
-  try {
-    const response = await fetch(url);
-    if (response.ok) {
-      const jsonResponse = await response.json();
-      const articles = jsonResponse.articles;
-      console.log("GNews:", articles);
-      return articles;
-    }
-  } catch (error) {
-    console.log(error);
+  const data = await res.json();
+  console.log("guardian data", data);
+  
+  // pull out just what we need from each article
+  let articles = [];
+  for (let i = 0; i < data.response.results.length; i++) {
+    let a = data.response.results[i];
+    articles.push({
+      title: a.webTitle,
+      desc: a.fields.trailText || "no description",
+      img: a.fields.thumbnail || "",
+      link: a.webUrl,
+      from: "The Guardian",
+      date: a.webPublicationDate.slice(0, 10)
+    });
   }
-};
+  return articles;
+}
 
-const parseGuardian = (articles) => {
-  return articles.map(a => ({
-    title: a.webTitle,
-    description: a.fields?.trailText || "",
-    image: a.fields?.thumbnail || "",
-    url: a.webUrl,
-    source: "The Guardian",
-    date: a.webPublicationDate?.slice(0, 10) || ""
-  }));
-};
+async function fetchGnews(topic) {
+  let url = "https://gnews.io/api/v4/top-headlines?topic=" + topic + "&lang=en&apikey=" + gnewsKey;
+  
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.log("gnews fetch failed", res.status);
+    return [];
+  }
+  const data = await res.json();
+  console.log("gnews data", data);
+  
+  let articles = [];
+  for (let i = 0; i < data.articles.length; i++) {
+    let a = data.articles[i];
+    articles.push({
+      title: a.title,
+      desc: a.description || "no description",
+      img: a.image || "",
+      link: a.url,
+      from: a.source.name,
+      date: a.publishedAt.slice(0, 10)
+    });
+  }
+  return articles;
+}
 
-const parseGNews = (articles) => {
-  return articles.map(a => ({
-    title: a.title,
-    description: a.description || "",
-    image: a.image || "",
-    url: a.url,
-    source: a.source?.name || "GNews",
-    date: a.publishedAt?.slice(0, 10) || ""
-  }));
-};
+function showHero(article) {
+  let hero = document.getElementById("hero-article");
+  
+  let saved = getSavedArticles();
+  let alreadySaved = saved.some(s => s.link === article.link);
+  let btnText = alreadySaved ? "Saved ✓" : "Save Article";
 
-const makeCard = (article) => {
-  const card = document.createElement("div");
-  card.className = "article-card";
-  card.innerHTML = `
-    <img src="${article.image}" alt="${article.title}" onerror="this.style.display='none'" />
-    <div class="card-body">
-      <span class="article-source">${article.source}</span>
-      <h3 class="card-headline">${article.title}</h3>
-      <p class="card-desc">${article.description}</p>
-      <div class="card-meta">
-        <span class="article-date">${article.date}</span>
-        <a href="${article.url}" target="_blank" class="btn-read">Read More</a>
-      </div>
-    </div>
-  `;
-  return card;
-};
-
-const displayHero = (article) => {
-  document.getElementById("hero-article").innerHTML = `
-    <img src="${article.image}" alt="${article.title}" onerror="this.style.display='none'" />
+  hero.innerHTML = `
+    <img src="${article.img}" onerror="this.style.display='none'" />
     <div class="hero-content">
-      <span class="article-source">${article.source}</span>
+      <span class="article-source">${article.from}</span>
       <h2 class="hero-headline">${article.title}</h2>
-      <p class="hero-desc">${article.description}</p>
+      <p class="hero-desc">${article.desc}</p>
       <div class="hero-meta">
         <span class="article-date">${article.date}</span>
-        <a href="${article.url}" target="_blank" class="btn-read">Read More</a>
+        <a href="${article.link}" target="_blank" class="btn-read">Read More</a>
+        <button class="btn-save" id="hero-save-btn">${btnText}</button>
       </div>
     </div>
   `;
-};
 
-const displayGrid = (articles) => {
-  const grid = document.getElementById("article-grid");
+  document.getElementById("hero-save-btn").addEventListener("click", function() {
+    handleSave(article, this);
+  });
+}
+
+function makeArticleCard(article) {
+  let card = document.createElement("div");
+  card.className = "article-card";
+
+  let saved = getSavedArticles();
+  let alreadySaved = saved.some(s => s.link === article.link);
+  let btnText = alreadySaved ? "Saved ✓" : "Save";
+
+  card.innerHTML = `
+    <img src="${article.img}" onerror="this.style.display='none'" />
+    <div class="card-body">
+      <span class="article-source">${article.from}</span>
+      <h3 class="card-headline">${article.title}</h3>
+      <p class="card-desc">${article.desc}</p>
+      <div class="card-meta">
+        <span class="article-date">${article.date}</span>
+        <a href="${article.link}" target="_blank" class="btn-read">Read More</a>
+        <button class="btn-save">${btnText}</button>
+      </div>
+    </div>
+  `;
+
+  card.querySelector(".btn-save").addEventListener("click", function() {
+    handleSave(article, this);
+  });
+
+  return card;
+}
+
+function showArticles(allArticles) {
+  if (allArticles.length === 0) {
+    console.log("no articles to show");
+    return;
+  }
+  showHero(allArticles[0]);
+
+  let grid = document.getElementById("article-grid");
   grid.innerHTML = "";
-  articles.forEach(article => {
-    grid.appendChild(makeCard(article));
+  for (let i = 1; i < allArticles.length; i++) {
+    grid.appendChild(makeArticleCard(allArticles[i]));
+  }
+}
+
+async function loadNews() {
+  let guardianArticles = await fetchGuardian(guardianSection);
+  let gnewsArticles = await fetchGnews(gnewsTopic);
+  let combined = guardianArticles.concat(gnewsArticles);
+  showArticles(combined);
+}
+
+// localStorage stuff
+function getSavedArticles() {
+  let saved = localStorage.getItem("saved_articles");
+  if (saved == null) return [];
+  return JSON.parse(saved);
+}
+
+function handleSave(article, btn) {
+  let saved = getSavedArticles();
+  let alreadySaved = saved.some(s => s.link === article.link);
+
+  if (alreadySaved) {
+    // unsave it
+    let updated = saved.filter(s => s.link !== article.link);
+    localStorage.setItem("saved_articles", JSON.stringify(updated));
+    btn.textContent = "Save";
+    btn.classList.remove("saved");
+    console.log("removed from saved:", article.title);
+  } else {
+    // save it
+    saved.push(article);
+    localStorage.setItem("saved_articles", JSON.stringify(saved));
+    btn.textContent = "Saved ✓";
+    btn.classList.add("saved");
+    console.log("saved article:", article.title);
+  }
+}
+
+function showSavedModal() {
+  let saved = getSavedArticles();
+  let list = document.getElementById("saved-articles-list");
+  list.innerHTML = "";
+
+  if (saved.length == 0) {
+    list.innerHTML = "<p class='empty-state'>Nothing saved yet.</p>";
+    return;
+  }
+
+  for (let i = 0; i < saved.length; i++) {
+    let a = saved[i];
+    let item = document.createElement("div");
+    item.className = "article-card";
+    item.innerHTML = `
+      <div class="card-body">
+        <span class="article-source">${a.from}</span>
+        <h3 class="card-headline">${a.title}</h3>
+        <div class="card-meta">
+          <span class="article-date">${a.date}</span>
+          <a href="${a.link}" target="_blank" class="btn-read">Read More</a>
+          <button class="btn-remove" data-link="${a.link}">Remove</button>
+        </div>
+      </div>
+    `;
+    item.querySelector(".btn-remove").addEventListener("click", function() {
+      let updated = getSavedArticles().filter(s => s.link !== a.link);
+      localStorage.setItem("saved_articles", JSON.stringify(updated));
+      showSavedModal();
+    });
+    list.appendChild(item);
+  }
+}
+
+// filter chips
+let chips = document.querySelectorAll(".filter-chip");
+for (let i = 0; i < chips.length; i++) {
+  chips[i].addEventListener("click", function() {
+    for (let j = 0; j < chips.length; j++) chips[j].classList.remove("active");
+    this.classList.add("active");
+    guardianSection = this.dataset.guardian;
+    gnewsTopic = this.dataset.gnews;
+    loadNews();
   });
-};
+}
 
-const loadArticles = async (guardianSection, gnewsTopic) => {
-  const guardianRaw = await getGuardianArticles(guardianSection);
-  const gnewsRaw = await getGNewsArticles(gnewsTopic);
-
-  const guardianArticles = guardianRaw ? parseGuardian(guardianRaw) : [];
-  const gnewsArticles = gnewsRaw ? parseGNews(gnewsRaw) : [];
-
-  const all = [...guardianArticles, ...gnewsArticles];
-
-  if (all.length === 0) return;
-  displayHero(all[0]);
-  displayGrid(all.slice(1));
-};
-
-document.querySelectorAll(".filter-chip").forEach(chip => {
-  chip.addEventListener("click", () => {
-    document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
-    chip.classList.add("active");
-    currentGuardian = chip.dataset.guardian;
-    currentGnews = chip.dataset.gnews;
-    loadArticles(currentGuardian, currentGnews);
-  });
+document.getElementById("saved-btn").addEventListener("click", function() {
+  showSavedModal();
+  document.getElementById("saved-modal").classList.remove("hidden");
 });
 
-loadArticles(currentGuardian, currentGnews);
+document.getElementById("close-modal").addEventListener("click", function() {
+  document.getElementById("saved-modal").classList.add("hidden");
+});
+
+document.getElementById("modal-overlay").addEventListener("click", function() {
+  document.getElementById("saved-modal").classList.add("hidden");
+});
+
+loadNews();
