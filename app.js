@@ -58,6 +58,58 @@ async function fetchGnews(topic) {
   return articles;
 }
 
+async function searchGuardian(query) {
+  let url = "https://content.guardianapis.com/search?api-key=" + guardianKey + "&q=" + query + "&show-fields=thumbnail,trailText";
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.log("guardian search failed", res.status);
+    return [];
+  }
+  const data = await res.json();
+  console.log("guardian search results", data);
+
+  let articles = [];
+  for (let i = 0; i < data.response.results.length; i++) {
+    let a = data.response.results[i];
+    articles.push({
+      title: a.webTitle,
+      desc: a.fields.trailText || "no description",
+      img: a.fields.thumbnail || "",
+      link: a.webUrl,
+      from: "The Guardian",
+      date: a.webPublicationDate.slice(0, 10)
+    });
+  }
+  return articles;
+}
+
+async function searchGnews(query) {
+  let url = "https://gnews.io/api/v4/search?q=" + query + "&lang=en&apikey=" + gnewsKey;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.log("gnews search failed", res.status);
+    return [];
+  }
+  const data = await res.json();
+  console.log("gnews search results", data);
+
+  let articles = [];
+  for (let i = 0; i < data.articles.length; i++) {
+    let a = data.articles[i];
+    articles.push({
+      title: a.title,
+      desc: a.description || "no description",
+      img: a.image || "",
+      link: a.url,
+      from: a.source.name,
+      date: a.publishedAt.slice(0, 10)
+    });
+  }
+  return articles;
+}
+
 function showHero(article) {
   let hero = document.getElementById("hero-article");
   
@@ -134,6 +186,23 @@ async function loadNews() {
   showArticles(combined);
 }
 
+async function runSearch() {
+  let query = document.getElementById("search-input").value.trim();
+  if (query == "") return;
+
+  console.log("searching for:", query);
+
+  let guardianResults = await searchGuardian(query);
+  let gnewsResults = await searchGnews(query);
+  let combined = guardianResults.concat(gnewsResults);
+
+  // clear active chip since we're in search mode now
+  let chips = document.querySelectorAll(".filter-chip");
+  for (let i = 0; i < chips.length; i++) chips[i].classList.remove("active");
+
+  showArticles(combined);
+}
+
 // localStorage stuff
 function getSavedArticles() {
   let saved = localStorage.getItem("saved_articles");
@@ -204,9 +273,18 @@ for (let i = 0; i < chips.length; i++) {
     this.classList.add("active");
     guardianSection = this.dataset.guardian;
     gnewsTopic = this.dataset.gnews;
+    document.getElementById("search-input").value = "";
     loadNews();
   });
 }
+
+document.getElementById("search-btn").addEventListener("click", function() {
+  runSearch();
+});
+
+document.getElementById("search-input").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") runSearch();
+});
 
 document.getElementById("saved-btn").addEventListener("click", function() {
   showSavedModal();
